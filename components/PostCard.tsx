@@ -36,6 +36,7 @@ export default function PostCard({ id, content, timeAgo, likes: initialLikes, re
     })
   }
 
+  // Fallback if authorName is missing
   const displayName = isAnonymous ? 'Anonymous' : (authorName || 'User')
 
   return (

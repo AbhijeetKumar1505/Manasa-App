@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import PostCard from '@/components/PostCard';
 import { getPosts } from '@/app/actions/feed';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 interface Post {
   id: string;
@@ -14,6 +16,13 @@ interface Post {
 }
 
 export default async function FeedPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/');
+  }
+
   const posts = await getPosts() as Post[];
 
   return (

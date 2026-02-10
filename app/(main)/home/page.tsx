@@ -1,13 +1,17 @@
 import Link from 'next/link';
 import MoodCheckIn from '@/components/MoodCheckIn';
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Try to fetch profile for display name
-  const { data: profile } = user ? await supabase.from('profiles').select('display_name').eq('id', user.id).single() : { data: null };
+  if (!user) {
+    redirect('/');
+  }
+
+  const { data: profile } = await supabase.from('profiles').select('display_name').eq('id', user.id).single();
   const displayName = profile?.display_name || 'Friend';
 
   return (
