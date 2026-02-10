@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-manrope);
+
+  --color-primary: #19c3e6;
+  --color-background-light: #f6f8f8;
+  --color-background-dark: #111e21;
+  --color-background-deep: #0f171a;
+  --color-card-dark: #1a2529;
+  --color-midnight-blue: #0A1221;
+  --color-soft-mint: #eef9f7;
+  --color-soft-lavender: #f3f0ff;
+  --color-soft-peach: #fff5f0;
+  --color-soft-blue: #f0f9ff;
+  --color-surface-dark: #161D26;
+  --color-accent-mint: #2DD4BF;
+  --color-accent-lavender: #A78BFA;
+  --color-accent-peach: #FB923C;
+  --color-accent-blue: #38BDF8;
+  --color-text-grey: #D1D5DB;
+  --color-bg-deep: #0a0f10;
+  --color-charcoal: #121820;
+  --color-accent: #00E5FF;
+  --color-pastel-accent: #d1ffd1;
+}
+
+/* Material Icons Helpers */
+.material-icons, .material-icons-round, .material-symbols-outlined {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Hide Scrollbar Utility */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Calm Gradient for Landing Page */
+.calm-gradient {
+    background: radial-gradient(circle at 50% 50%, rgba(25, 195, 230, 0.08) 0%, rgba(246, 248, 248, 0) 70%);
+}
+.dark .calm-gradient {
+    background: radial-gradient(circle at 50% 50%, rgba(25, 195, 230, 0.15) 0%, #0A1221 70%);
+}
