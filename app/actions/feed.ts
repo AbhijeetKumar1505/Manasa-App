@@ -35,31 +35,66 @@ export async function getPosts() {
   const { data: { user } } = await supabase.auth.getUser()
   const userId = user?.id
 
-  // We want to fetch posts, and ideally know if the current user liked them.
-  // Supabase complex joins can be tricky in one go without types.
-  // For MVP, fetch posts, then fetch likes for this user.
-
-  const { data: posts, error } = await supabase
+  // 1. Fetch Posts
+  const { data: posts, error: postsError } = await supabase
     .from('posts')
-    .select(`
-      *,
-      profiles (display_name, avatar_url),
-      post_likes (user_id)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching posts:', error)
+  if (postsError) {
+    console.error('Error fetching posts:', postsError)
     return []
   }
 
-  // Transform data to include 'liked' status
-  return posts.map((post) => ({
-    ...post,
-    liked: post.post_likes.some((like: { user_id: string }) => like.user_id === userId),
-    likes: post.post_likes.length,
-    replies: post.comments_count || 0
-  }))
+  if (!posts || posts.length === 0) return []
+
+  // 2. Extract User IDs for Profiles
+  const userIds = Array.from(new Set(posts.map(p => p.user_id)))
+
+  // 3. Fetch Profiles
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url')
+    .in('id', userIds)
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError)
+  }
+
+  // Define Profile Type to allow mapping
+  interface Profile {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+  }
+
+  const profilesMap = new Map((profiles as Profile[])?.map(p => [p.id, p]) || [])
+
+  // 4. Fetch Likes for Current User
+  let userLikes = new Set<string>()
+  if (userId) {
+    const { data: likes } = await supabase
+      .from('post_likes')
+      .select('post_id')
+      .eq('user_id', userId)
+      .in('post_id', posts.map(p => p.id))
+
+    if (likes) {
+      likes.forEach(l => userLikes.add(l.post_id))
+    }
+  }
+
+  // 5. Merge Data
+  return posts.map((post) => {
+    const profile = profilesMap.get(post.user_id)
+    return {
+      ...post,
+      profiles: profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
+      liked: userLikes.has(post.id),
+      likes: post.likes_count || 0,
+      replies: post.comments_count || 0
+    }
+  })
 }
 
 export async function likePost(postId: string) {
@@ -68,7 +103,6 @@ export async function likePost(postId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // Check if already liked
   const { data: existingLike } = await supabase
     .from('post_likes')
     .select('id')
@@ -77,10 +111,8 @@ export async function likePost(postId: string) {
     .single()
 
   if (existingLike) {
-    // Unlike
     await supabase.from('post_likes').delete().eq('id', existingLike.id)
   } else {
-    // Like
     await supabase.from('post_likes').insert({
       post_id: postId,
       user_id: user.id
