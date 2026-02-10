@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import MoodCheckIn from '@/components/MoodCheckIn';
+import { createClient } from '@/lib/supabase/server';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Try to fetch profile for display name
+  const { data: profile } = user ? await supabase.from('profiles').select('display_name').eq('id', user.id).single() : { data: null };
+  const displayName = profile?.display_name || 'Friend';
+
   return (
     <div className="pb-24 relative overflow-x-hidden">
       {/* Header */}
@@ -10,7 +19,7 @@ export default function HomePage() {
             Welcome back
           </p>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
-            Hey, how are you feeling today?
+            Hey {displayName}, how are you feeling today?
           </h1>
         </div>
         <button className="w-10 h-10 rounded-full bg-white dark:bg-card-dark flex items-center justify-center shadow-lg shadow-primary/10">
@@ -20,37 +29,7 @@ export default function HomePage() {
 
       {/* Mood Check-In */}
       <section className="px-6 mb-8">
-        <div className="bg-white dark:bg-card-dark rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
-          <div className="flex justify-between items-center mb-6">
-            <button className="flex flex-col items-center gap-2 group">
-              <div className="w-12 h-12 rounded-full bg-background-light dark:bg-slate-800 flex items-center justify-center text-2xl group-active:scale-95 transition-transform duration-150">😊</div>
-              <span className="text-xs font-medium text-slate-500">Great</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 group">
-              <div className="w-12 h-12 rounded-full bg-background-light dark:bg-slate-800 flex items-center justify-center text-2xl group-active:scale-95 transition-transform duration-150">🙂</div>
-              <span className="text-xs font-medium text-slate-500">Good</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 group ring-2 ring-primary ring-offset-4 ring-offset-white dark:ring-offset-card-dark rounded-full">
-              <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-2xl">😐</div>
-              <span className="text-xs font-bold text-primary">Meh</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 group">
-              <div className="w-12 h-12 rounded-full bg-background-light dark:bg-slate-800 flex items-center justify-center text-2xl group-active:scale-95 transition-transform duration-150">😔</div>
-              <span className="text-xs font-medium text-slate-500">Low</span>
-            </button>
-            <button className="flex flex-col items-center gap-2 group">
-              <div className="w-12 h-12 rounded-full bg-background-light dark:bg-slate-800 flex items-center justify-center text-2xl group-active:scale-95 transition-transform duration-150">😰</div>
-              <span className="text-xs font-medium text-slate-500">Anxious</span>
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              className="w-full bg-background-light dark:bg-slate-800 border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white"
-              placeholder="Want to say more?"
-              type="text"
-            />
-          </div>
-        </div>
+        <MoodCheckIn />
       </section>
 
       {/* Today's Support */}

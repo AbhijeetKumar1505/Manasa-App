@@ -1,13 +1,21 @@
+import Link from 'next/link';
 import PostCard from '@/components/PostCard';
+import { getPosts } from '@/app/actions/feed';
 
-const posts = [
-  { id: 1, content: "Does anyone else feel like they're just pretending to know what's going on in lectures? Exam season is coming and the anxiety is peaking. 🫠", timeAgo: "2 hours ago", likes: 24, replies: 8, liked: false },
-  { id: 2, content: "Small win: I finally reached out to the student counselor today. It wasn't as scary as I thought it would be. If you're thinking about it, this is your sign. ❤️", timeAgo: "5 hours ago", likes: 156, replies: 12, liked: true },
-  { id: 3, content: "Placement season is making me feel like I'm not good enough compared to my peers. How do you all stop comparing yourself to everyone else's LinkedIn updates?", timeAgo: "Yesterday", likes: 89, replies: 32, liked: false },
-  { id: 4, content: "It's 3 AM and I'm just staring at the ceiling. Mumbai rains are soothing but my mind won't shut up about tomorrow's presentation.", timeAgo: "Just now", likes: 0, replies: 0, liked: false },
-];
+interface Post {
+  id: string;
+  content: string;
+  created_at: string;
+  likes: number;
+  replies: number;
+  liked: boolean;
+  is_anonymous: boolean;
+  profiles: { display_name: string } | null;
+}
 
-export default function FeedPage() {
+export default async function FeedPage() {
+  const posts = await getPosts() as Post[];
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -23,15 +31,31 @@ export default function FeedPage() {
 
       {/* Feed */}
       <main className="px-4 py-6 space-y-4 pb-32">
-        {posts.map(post => (
-          <PostCard key={post.id} {...post} />
-        ))}
+        {posts.length === 0 ? (
+          <div className="text-center py-10 text-slate-500">
+            <p>No posts yet. Be the first to share!</p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              content={post.content}
+              timeAgo={new Date(post.created_at).toLocaleDateString()}
+              likes={post.likes}
+              replies={post.replies}
+              liked={post.liked}
+              isAnonymous={post.is_anonymous}
+              authorName={post.profiles?.display_name}
+            />
+          ))
+        )}
       </main>
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-50 hover:scale-105 active:scale-95 transition-transform">
+      <Link href="/feed/create" className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center z-50 hover:scale-105 active:scale-95 transition-transform">
         <span className="material-icons-round text-3xl">add</span>
-      </button>
+      </Link>
     </div>
   );
 }

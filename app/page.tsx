@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import GetStartedButton from '@/components/landing/GetStartedButton';
 
 export default function LandingPage() {
   return (
@@ -29,12 +29,7 @@ export default function LandingPage() {
 
       {/* Bottom Action & Footer Area */}
       <div className="w-full space-y-8 flex flex-col items-center z-10">
-        <Link
-          href="/home"
-          className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-5 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] text-lg text-center"
-        >
-          Get Started
-        </Link>
+        <GetStartedButton />
 
         <div className="flex flex-col items-center space-y-4">
           <div className="flex items-center space-x-3 text-sm font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">

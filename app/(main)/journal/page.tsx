@@ -1,12 +1,17 @@
 import Link from 'next/link';
+import { getEntries } from '@/app/actions/journal';
 
-const entries = [
-  { id: 1, date: "Today", mood: "🌿", title: "Finding some peace", preview: "Managed to finish the first draft of my project today. It felt good to take a long walk near the park after classes..." },
-  { id: 2, date: "Oct 25, 2023", mood: "😴", title: "Exhausted but hopeful", preview: "The prep for final semester exams is kicking in. I felt overwhelmed this morning but talking to Rahul helped a lot..." },
-  { id: 3, date: "Oct 23, 2023", mood: "✨", title: "A small win", preview: "I finally started that book I've been eyeing. The first chapter resonates so much with how I've been feeling lately..." },
-];
+interface JournalEntry {
+  id: string;
+  created_at: string;
+  mood_tag: string | null;
+  title: string | null;
+  content: string | null;
+}
 
-export default function JournalPage() {
+export default async function JournalPage() {
+  const entries = await getEntries() as JournalEntry[];
+
   return (
     <div className="min-h-screen pt-4 pb-32 px-5 bg-background-light dark:bg-background-dark">
       {/* Header */}
@@ -25,18 +30,26 @@ export default function JournalPage() {
 
       {/* Journal List */}
       <div className="space-y-4">
-        {entries.map(entry => (
-          <div key={entry.id} className="bg-white dark:bg-card-dark p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex justify-between items-start mb-2">
-              <span className={`text-xs font-bold uppercase tracking-wider ${entry.date === 'Today' ? 'text-primary' : 'text-slate-400'}`}>{entry.date}</span>
-              <span className="text-2xl">{entry.mood}</span>
-            </div>
-            <h3 className="font-semibold text-slate-900 dark:text-white text-lg mb-1">{entry.title}</h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 leading-relaxed">
-              {entry.preview}
-            </p>
+        {entries.length === 0 ? (
+          <div className="text-center py-10 text-slate-500">
+            <p>No entries yet. Start writing!</p>
           </div>
-        ))}
+        ) : (
+          entries.map((entry) => (
+            <div key={entry.id} className="bg-white dark:bg-card-dark p-5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  {new Date(entry.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </span>
+                <span className="text-2xl">{entry.mood_tag || '📝'}</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-lg mb-1">{entry.title || 'Untitled'}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                {entry.content}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
       {/* FAB */}
